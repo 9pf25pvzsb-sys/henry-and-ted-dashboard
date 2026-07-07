@@ -201,12 +201,40 @@ const ADAPTERS = {
      connect.squareupsandbox.com.
   */
   pos: {
-    configured: false,
-    auth: null,
+    /* Manual count rung: Dnero has no self-serve API, so the owner types one
+       number per month (the count of completed transactions). Stored in KV as
+       poscount:YYYY-MM. Money never comes from here - only the count. A period
+       returns a count only when it is exactly whole calendar months that all
+       have a saved figure; otherwise null (honest "not configured"). */
+    configured: true,
+    auth: 'manual',
     oauth: {},
-    async status(env, h) { return { connected: false }; },
-    async fetchRange(env, h, q) { throw new NotConfigured('pos'); },
-    async fetchMonthly(env, h, q) { throw new NotConfigured('pos'); }
+    async status(env, h) {
+      return { connected: true, org: null, manualCount: true, sandbox: false, lastSync: null };
+    },
+    async fetchRange(env, h, q) {
+      const months = wholeMonthsInRange(q.from, q.to);
+      if (!months) return { count: null };
+      let total = 0;
+      for (const mo of months) {
+        const v = await env.TOKENS.get('poscount:' + mo);
+        if (v == null || v === '') return { count: null };
+        const n = parseInt(v, 10);
+        if (!isFinite(n)) return { count: null };
+        total += n;
+      }
+      return { count: total };
+    },
+    async fetchMonthly(env, h, q) {
+      const months = monthList(q.fromMonth, q.toMonth);
+      const count = [];
+      for (const mo of months) {
+        const v = await env.TOKENS.get('poscount:' + mo);
+        const n = (v == null || v === '') ? NaN : parseInt(v, 10);
+        count.push(isFinite(n) ? n : null);
+      }
+      return { months: months, count: count };
+    }
   },
 
   /* >>> ADAPTER 3: ROSTERING (optional - only if the owner has one)
@@ -637,6 +665,57 @@ async function monthlyIngested(env, source, fromMonth, toMonth) {
   return out;
 }
 
+/* Returns the list of whole calendar months a date range exactly covers, or
+   null if the range starts mid-month, ends mid-month, or isn't month-aligned.
+   Used by the manual-count POS adapter so a count only shows for whole months. */
+function wholeMonthsInRange(from, to) {
+  const fm = /^(\d{4})-(\d{2})-(\d{2})$/.exec(from || '');
+  const tm = /^(\d{4})-(\d{2})-(\d{2})$/.exec(to || '');
+  if (!fm || !tm) return null;
+  if (fm[3] !== '01') return null;
+  const lastDay = new Date(Date.UTC(+tm[1], +tm[2], 0)).getUTCDate();
+  if (+tm[3] !== lastDay) return null;
+  return monthList(fm[1] + '-' + fm[2], tm[1] + '-' + tm[2]);
+}
+
+/* GET /api/poscount -> { counts: { 'YYYY-MM': n, ... } } (session-authed). */
+async function posCountList(env) {
+  const out = {};
+  try {
+    const list = await env.TOKENS.list({ prefix: 'poscount:' });
+    for (const k of list.keys) {
+      const mo = k.name.slice('poscount:'.length);
+      const v = await env.TOKENS.get(k.name);
+      const n = parseInt(v, 10);
+      if (isFinite(n)) out[mo] = n;
+    }
+  } catch (e) {}
+  return json({ counts: out });
+}
+
+/* POST /api/poscount { month:'YYYY-MM', count:int|null } (session-authed).
+   Saves/clears the month's transaction count and clears the metrics cache so
+   the board reflects it immediately. */
+async function posCountSave(env, request) {
+  let body = {};
+  try { body = await request.json(); } catch (e) {}
+  const month = String(body.month || '');
+  if (!/^\d{4}-\d{2}$/.test(month)) return json({ ok: false, plain: 'Pick a month first.' }, 400);
+  if (body.count === null || body.count === '' || typeof body.count === 'undefined') {
+    await env.TOKENS.delete('poscount:' + month);
+  } else {
+    const n = parseInt(body.count, 10);
+    if (!isFinite(n) || n < 0) return json({ ok: false, plain: 'Enter a whole number (0 or more).' }, 400);
+    await env.TOKENS.put('poscount:' + month, String(n));
+  }
+  try {
+    const mc = await env.TOKENS.list({ prefix: 'metricscache:' });
+    for (const k of mc.keys) await env.TOKENS.delete(k.name);
+  } catch (e) {}
+  await noteSync(env, 'pos');
+  return json({ ok: true, month: month });
+}
+
 /* POST /api/ingest?source=pos|accounting|rostering
    Authorization: Bearer <INGEST_TOKEN>. Body: the exported file's text.
    The source's adapter.parseExport() turns it into day rows. */
@@ -688,6 +767,7 @@ async function sourceStatus(env, source) {
     return {
       configured: true,
       ingest: typeof adapter.parseExport === 'function',
+      manualCount: !!(st && st.manualCount),
       connected: !!(st && st.connected),
       org: (st && st.org) || null,
       sandbox: !!(st && st.sandbox),
@@ -845,6 +925,14 @@ export default {
     if (path === '/api/metrics' && request.method === 'GET') {
       if (!loggedIn) return json({ error: 'auth' }, 401);
       return apiMetrics(env, url);
+    }
+    if (path === '/api/poscount' && request.method === 'GET') {
+      if (!loggedIn) return json({ error: 'auth' }, 401);
+      return posCountList(env);
+    }
+    if (path === '/api/poscount' && request.method === 'POST') {
+      if (!loggedIn) return json({ error: 'auth' }, 401);
+      return posCountSave(env, request);
     }
     const authRoute = /^\/auth\/(accounting|pos|rostering)\/(start|callback)$/.exec(path);
     if (authRoute && request.method === 'GET') {

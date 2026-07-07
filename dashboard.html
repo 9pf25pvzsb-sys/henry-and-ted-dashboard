@@ -1209,21 +1209,25 @@ function renderConnections(root) {
       card.appendChild(eb);
     }
 
-    var act = el('div', 'conn-actions');
-    if (st.configured) {
-      var rec = el('button', 'btn-plain', st.connected ? 'Reconnect' : 'Connect');
-      rec.onclick = function () { window.location.href = '/auth/' + s.key + '/start'; };
-      act.appendChild(rec);
+    if (st.manualCount) {
+      card.appendChild(posCountPanel(s));
     } else {
-      act.appendChild(el('span', 'conn-line', 'Your AI sets this up with you during the build.'));
+      var act = el('div', 'conn-actions');
+      if (st.configured) {
+        var rec = el('button', 'btn-plain', st.connected ? 'Reconnect' : 'Connect');
+        rec.onclick = function () { window.location.href = '/auth/' + s.key + '/start'; };
+        act.appendChild(rec);
+      } else {
+        act.appendChild(el('span', 'conn-line', 'Your AI sets this up with you during the build.'));
+      }
+      card.appendChild(act);
+
+      var cb = el('div', 'cb-url');
+      cb.innerHTML = 'Callback address for this connection (your AI may ask for it): <b>' + esc(location.origin + '/auth/' + s.key + '/callback') + '</b>';
+      card.appendChild(cb);
+
+      if (st.ingest) card.appendChild(uploadPanel(s));
     }
-    card.appendChild(act);
-
-    var cb = el('div', 'cb-url');
-    cb.innerHTML = 'Callback address for this connection (your AI may ask for it): <b>' + esc(location.origin + '/auth/' + s.key + '/callback') + '</b>';
-    card.appendChild(cb);
-
-    if (st.ingest) card.appendChild(uploadPanel(s));
 
     root.appendChild(card);
   });
@@ -1288,6 +1292,86 @@ function uploadPanel(s) {
     reader.readAsText(f);
   };
   row.appendChild(btn);
+  wrap.appendChild(row);
+  wrap.appendChild(msg);
+  return wrap;
+}
+
+/* ---------- Manual transaction count (the POS single-number rung) ---------- */
+function monthNiceLabel(mo) {
+  var p = String(mo).split('-');
+  var names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  return names[parseInt(p[1], 10) - 1] + ' ' + p[0];
+}
+function posCountPanel(s) {
+  var wrap = el('div', 'conn-org');
+  wrap.style.background = 'var(--c-purple-bg)';
+  wrap.style.borderColor = 'var(--c-purple-border)';
+  wrap.style.color = 'var(--c-purple-text)';
+  wrap.innerHTML = '<b>Enter your transaction count.</b> One number per month — the count of completed sales on your '
+    + esc(s.name) + ' report for the month. That’s all we need from ' + esc(s.name) + '; every dollar figure comes live from Xero.';
+
+  var row = el('div', 'conn-actions');
+  var sel = document.createElement('select');
+  sel.style.cssText = 'font-family:DM Sans,sans-serif;font-size:13px;padding:7px 10px;border:1px solid var(--border-med);border-radius:8px;';
+  var now = new Date();
+  var opts = [];
+  for (var i = 1; i <= 13; i++) {
+    var d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
+    opts.push(d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0'));
+  }
+  opts.forEach(function (mo) {
+    var o = document.createElement('option'); o.value = mo; o.textContent = monthNiceLabel(mo); sel.appendChild(o);
+  });
+  row.appendChild(sel);
+
+  var num = document.createElement('input');
+  num.type = 'number'; num.min = '0'; num.step = '1'; num.placeholder = 'e.g. 540';
+  num.style.cssText = 'font-family:DM Sans,sans-serif;font-size:13px;padding:7px 10px;border:1px solid var(--border-med);border-radius:8px;width:130px;';
+  row.appendChild(num);
+
+  var btn = el('button', 'btn-small', 'Save');
+  row.appendChild(btn);
+
+  var msg = el('div', 'conn-line'); msg.style.marginTop = '0.4rem';
+
+  var saved = {};
+  function refreshNum() { var v = saved[sel.value]; num.value = (typeof v === 'number') ? v : ''; }
+  fetch('/api/poscount', { credentials: 'same-origin' })
+    .then(function (r) { return r.json(); })
+    .then(function (j) {
+      saved = (j && j.counts) || {};
+      refreshNum();
+      var missing = opts.filter(function (mo) { return !(mo in saved); });
+      if (missing.length) msg.textContent = 'Not entered yet: ' + missing.slice(0, 3).map(monthNiceLabel).join(', ') + (missing.length > 3 ? '…' : '');
+    })
+    .catch(function () {});
+  sel.onchange = refreshNum;
+
+  btn.onclick = function () {
+    var raw = num.value;
+    var n = parseInt(raw, 10);
+    if (raw === '' || !isFinite(n) || n < 0) { msg.textContent = 'Enter a whole number (0 or more).'; return; }
+    btn.disabled = true; msg.textContent = 'Saving…';
+    fetch('/api/poscount', {
+      method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ month: sel.value, count: n })
+    })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (out) {
+        btn.disabled = false;
+        if (out.ok && out.j.ok) {
+          saved[sel.value] = n;
+          msg.textContent = 'Saved ' + monthNiceLabel(sel.value) + '. Refreshing…';
+          fetchData();
+        } else {
+          msg.textContent = (out.j && out.j.plain) || 'That didn’t save. Try again.';
+        }
+      })
+      .catch(function () { btn.disabled = false; msg.textContent = 'That didn’t save. Check your connection and try again.'; });
+  };
+
   wrap.appendChild(row);
   wrap.appendChild(msg);
   return wrap;
