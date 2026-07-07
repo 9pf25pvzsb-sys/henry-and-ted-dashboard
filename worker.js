@@ -56,6 +56,49 @@ import dashboardHtml from './dashboard.html';
    email() handler at the bottom (needs the owner's domain on their Cloudflare
    with Email Routing pointed at this Worker). Ingest auth: the INGEST_TOKEN
    secret; if the owner uploads by hand, that same value is their upload code. */
+/* ---- Xero P&L report parser (maps a ProfitAndLoss report to the 4 figures) ----
+   Revenue = trading Income section (Other Income excluded); COGS = Cost of Sales
+   section; within Operating Expenses, wage/super accounts -> wagesSuper, the rest
+   -> overheads. All ex-GST (Xero P&L accounts are GST-exclusive). */
+const XERO_WAGE_RE = /payroll|wage|salar|kiwisaver|superannuat|\bsuper\b/i;
+function xeroNum(v) {
+  const n = parseFloat(String(v == null ? '' : v).replace(/,/g, ''));
+  return isFinite(n) ? n : 0;
+}
+function xeroLastCell(cells) {
+  if (!Array.isArray(cells) || !cells.length) return 0;
+  return xeroNum(cells[cells.length - 1].Value);
+}
+function xeroAccountName(cells) {
+  return (Array.isArray(cells) && cells[0] && cells[0].Value) || '';
+}
+function parseXeroPnl(report) {
+  const rows = (report && report.Reports && report.Reports[0] && report.Reports[0].Rows) || [];
+  let revenue = 0, cogs = 0, wagesSuper = 0, overheads = 0;
+  for (const sec of rows) {
+    if (sec.RowType !== 'Section') continue;
+    const title = (sec.Title || '').toLowerCase();
+    const isOther = title.indexOf('other income') >= 0;
+    const isCogs = title.indexOf('cost of sales') >= 0 || title.indexOf('cost of goods') >= 0;
+    const isIncome = !isOther && !isCogs &&
+      (title.indexOf('income') >= 0 || title.indexOf('revenue') >= 0 ||
+       title.indexOf('sales') >= 0 || title.indexOf('turnover') >= 0);
+    const isOpex = !isCogs && !isIncome && !isOther &&
+      (title.indexOf('expense') >= 0 || title.indexOf('overhead') >= 0 ||
+       title.indexOf('administrative') >= 0);
+    const secRows = sec.Rows || [];
+    for (const r of secRows) {
+      if (r.RowType !== 'Row') continue; /* skip SummaryRow to avoid double-count */
+      const name = xeroAccountName(r.Cells);
+      const val = xeroLastCell(r.Cells);
+      if (isCogs) cogs += val;
+      else if (isIncome) revenue += val;
+      else if (isOpex) { if (XERO_WAGE_RE.test(name)) wagesSuper += val; else overheads += val; }
+    }
+  }
+  return { revenue: revenue, cogs: cogs, wagesSuper: wagesSuper, overheads: overheads };
+}
+
 const ADAPTERS = {
 
   /* >>> ADAPTER 1: ACCOUNTING (connect this FIRST - it feeds most of the board)
@@ -79,22 +122,69 @@ const ADAPTERS = {
      'Demo Company'. Secrets: ACCOUNTING_CLIENT_ID, ACCOUNTING_CLIENT_SECRET.
   */
   accounting: {
-    configured: false,
-    auth: null, /* 'oauth' | 'token' */
+    configured: true,
+    auth: 'oauth',
     oauth: {
-      /* Example (Xero) - fill these when you wire the adapter:
-         authorizeUrl: 'https://login.xero.com/identity/connect/authorize',
-         tokenUrl: 'https://identity.xero.com/connect/token',
-         scopes: 'offline_access accounting.reports.profitandloss.read',
-         clientIdSecret: 'ACCOUNTING_CLIENT_ID',
-         clientSecretSecret: 'ACCOUNTING_CLIENT_SECRET',
-         tokenAuth: 'basic'   // Xero's token endpoint wants HTTP Basic client auth
-                              // (client_secret_basic). Use 'post' only for providers
-                              // that expect client_id/secret in the form body. */
+      authorizeUrl: 'https://login.xero.com/identity/connect/authorize',
+      tokenUrl: 'https://identity.xero.com/connect/token',
+      scopes: 'offline_access accounting.reports.profitandloss.read',
+      clientIdSecret: 'ACCOUNTING_CLIENT_ID',
+      clientSecretSecret: 'ACCOUNTING_CLIENT_SECRET',
+      tokenAuth: 'basic'   /* Xero's token endpoint wants HTTP Basic client auth */
     },
-    async status(env, h) { return { connected: false }; },
-    async fetchRange(env, h, q) { throw new NotConfigured('accounting'); },
-    async fetchMonthly(env, h, q) { throw new NotConfigured('accounting'); }
+    /* Resolve (and cache in the token record) the Xero tenant id + org name. */
+    async _tenant(env, h) {
+      const tokens = await h.getTokens();
+      if (tokens && tokens.tenantId) return tokens.tenantId;
+      const conns = await h.fetchJson('https://api.xero.com/connections', {});
+      const org = (Array.isArray(conns) ? conns : []).find(function (c) { return c.tenantType === 'ORGANISATION'; }) ||
+                  (Array.isArray(conns) ? conns[0] : null);
+      if (!org) { const e = new Error('no xero organisation on this login'); e.status = 401; throw e; }
+      await h.saveTokens(Object.assign({}, tokens || {}, { tenantId: org.tenantId, org: org.tenantName }));
+      return org.tenantId;
+    },
+    async _report(env, h, from, to) {
+      const tenant = await this._tenant(env, h);
+      const url = 'https://api.xero.com/api.xro/2.0/Reports/ProfitAndLoss?fromDate=' + from + '&toDate=' + to;
+      return h.fetchJson(url, { headers: { 'Xero-tenant-id': tenant, 'Accept': 'application/json' } });
+    },
+    async status(env, h) {
+      const tokens = await h.getTokens();
+      if (!tokens || !tokens.access_token) return { connected: false };
+      const conns = await h.fetchJson('https://api.xero.com/connections', {});
+      const org = (Array.isArray(conns) ? conns : []).find(function (c) { return c.tenantType === 'ORGANISATION'; }) ||
+                  (Array.isArray(conns) ? conns[0] : null);
+      if (!org) return { connected: false };
+      await h.saveTokens(Object.assign({}, tokens, { tenantId: org.tenantId, org: org.tenantName }));
+      return {
+        connected: true,
+        org: org.tenantName,
+        sandbox: /demo company/i.test(org.tenantName || ''),
+        lastSync: null
+      };
+    },
+    async fetchRange(env, h, q) {
+      const rep = await this._report(env, h, q.from, q.to);
+      return parseXeroPnl(rep);
+    },
+    async fetchMonthly(env, h, q) {
+      const months = monthList(q.fromMonth, q.toMonth);
+      const revenue = [], cogs = [], wagesSuper = [], overheads = [];
+      for (const mo of months) {
+        const parts = mo.split('-').map(Number);
+        const y = parts[0], m = parts[1];
+        const from = mo + '-01';
+        const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
+        const to = mo + '-' + String(last).padStart(2, '0');
+        try {
+          const v = parseXeroPnl(await this._report(env, h, from, to));
+          revenue.push(v.revenue); cogs.push(v.cogs); wagesSuper.push(v.wagesSuper); overheads.push(v.overheads);
+        } catch (e) {
+          revenue.push(null); cogs.push(null); wagesSuper.push(null); overheads.push(null);
+        }
+      }
+      return { months: months, revenue: revenue, cogs: cogs, wagesSuper: wagesSuper, overheads: overheads };
+    }
   },
 
   /* >>> ADAPTER 2: POS
