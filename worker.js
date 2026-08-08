@@ -99,6 +99,26 @@ function parseXeroPnl(report) {
   return { revenue: revenue, cogs: cogs, wagesSuper: wagesSuper, overheads: overheads };
 }
 
+const HISTORY = [{"date":"2023-05-14","sf":16472.56,"sb":10507.87,"sd":0,"so":0,"st":26980.43,"cf":0,"cb":0,"lb":12790.78,"tx":1671},{"date":"2023-05-21","sf":16611.6,"sb":11956.03,"sd":0,"so":0,"st":28567.63,"cf":0,"cb":0,"lb":10396.42,"tx":1567},{"date":"2023-05-28","sf":14399.34,"sb":10913.2,"sd":0,"so":0,"st":25312.54,"cf":0,"cb":0,"lb":9505.32,"tx":1655},{"date":"2023-06-04","sf":15148.13,"sb":11647.04,"sd":0,"so":0,"st":26795.17,"cf":0,"cb":0,"lb":11384.1,"tx":1626},{"date":"2023-06-11","sf":15539.42,"sb":11553.92,"sd":0,"so":0,"st":27093.34,"cf":5953.97,"cb":2677.75,"lb":13432.73,"tx":1645},{"date":"2023-06-18","sf":15007.92,"sb":10998.27,"sd":0,"so":0,"st":26006.19,"cf":6952.16,"cb":3723.48,"lb":11746.78,"tx":1592},{"date":"2023-06-25","sf":15177.6,"sb":11668.51,"sd":0,"so":0,"st":26846.11,"cf":4973.73,"cb":3124.02,"lb":10603.09,"tx":null},{"date":"2023-07-23","sf":20358.32,"sb":14242.1,"sd":0,"so":0,"st":34600.42,"cf":7606.7,"cb":3282.74,"lb":13021.62,"tx":1828},{"date":"2023-07-30","sf":15129.42,"sb":12016.38,"sd":0,"so":0,"st":27145.8,"cf":0,"cb":0,"lb":0,"tx":1674},{"date":"2023-08-06","sf":15348.82,"sb":11639.13,"sd":0,"so":0,"st":26987.95,"cf":5763.71,"cb":2955.19,"lb":11741.88,"tx":1611},{"date":"2023-08-13","sf":14520.47,"sb":11441.75,"sd":0,"so":0,"st":25962.22,"cf":5820.9,"cb":3419.62,"lb":10532.46,"tx":1609},{"date":"2023-08-20","sf":16353.94,"sb":12502.37,"sd":0,"so":0,"st":28856.31,"cf":4425.05,"cb":3856.56,"lb":9985.3,"tx":1683},{"date":"2023-08-27","sf":15177.5,"sb":11072.09,"sd":0,"so":0,"st":26249.59,"cf":5967.86,"cb":3711.48,"lb":10562.57,"tx":1555},{"date":"2023-09-03","sf":16956.25,"sb":12162.17,"sd":0,"so":0,"st":29118.42,"cf":6680.83,"cb":3481.48,"lb":0,"tx":1626},{"date":"2023-09-10","sf":17135.18,"sb":12123.66,"sd":0,"so":0,"st":29258.84,"cf":0,"cb":0,"lb":12100.15,"tx":1626},{"date":"2023-09-17","sf":17744.8,"sb":13100.57,"sd":0,"so":0,"st":30845.37,"cf":5772.63,"cb":1330.8,"lb":10663.27,"tx":1666},{"date":"2023-09-24","sf":15446.44,"sb":12411.17,"sd":0,"so":0,"st":27857.61,"cf":4317.99,"cb":3303.58,"lb":11158.09,"tx":1589},{"date":"2023-10-01","sf":13797.42,"sb":12464.53,"sd":0,"so":0,"st":26261.95,"cf":4992.88,"cb":3830.83,"lb":10955.06,"tx":1586},{"date":"2023-10-08","sf":15738.55,"sb":11632.76,"sd":0,"so":0,"st":27371.31,"cf":4750.52,"cb":2336.8,"lb":12831.65,"tx":1488},{"date":"2023-10-15","sf":17817.67,"sb":13196.86,"sd":0,"so":0,"st":31014.53,"cf":5796.62,"cb":2503.58,"lb":11889.66,"tx":1666},{"date":"2023-10-22","sf":16569.45,"sb":12634.98,"sd":0,"so":0,"st":29204.43,"cf":7020.56,"cb":3861.95,"lb":12069.04,"tx":1621},{"date":"2023-10-29","sf":16611.86,"sb":13027.89,"sd":0,"so":0,"st":29639.75,"cf":5211.33,"cb":3551.73,"lb":12105.02,"tx":1621},{"date":"2023-11-05","sf":17497.02,"sb":12334.88,"sd":0,"so":0,"st":29831.9,"cf":5556.5,"cb":4253.64,"lb":12894.42,"tx":1525},{"date":"2023-11-12","sf":14586.16,"sb":11117.32,"sd":0,"so":0,"st":25703.48,"cf":4449.64,"cb":1685.16,"lb":11480.17,"tx":1444},{"date":"2023-11-19","sf":15540.84,"sb":13316.01,"sd":0,"so":0,"st":28856.85,"cf":5462.31,"cb":3300.89,"lb":11324.16,"tx":1648},{"date":"2023-11-26","sf":16839.38,"sb":14786.65,"sd":0,"so":0,"st":31626.03,"cf":5678.16,"cb":3467.47,"lb":13844.27,"tx":1590},{"date":"2023-12-03","sf":15811.33,"sb":12340.13,"sd":0,"so":0,"st":28151.46,"cf":4623.09,"cb":3903.89,"lb":12250.8,"tx":1515},{"date":"2023-12-10","sf":17394.54,"sb":11621.86,"sd":0,"so":0,"st":29016.4,"cf":6434.28,"cb":3563.48,"lb":12565.69,"tx":1574},{"date":"2023-12-17","sf":16360.21,"sb":14021.96,"sd":0,"so":0,"st":30382.17,"cf":5688.39,"cb":5486.19,"lb":11951.44,"tx":1558},{"date":"2023-12-24","sf":15061.07,"sb":13744.69,"sd":0,"so":0,"st":28805.76,"cf":6188.56,"cb":4588.58,"lb":11571.65,"tx":1447},{"date":"2023-12-31","sf":25185.73,"sb":18178.03,"sd":0,"so":0,"st":43363.76,"cf":8472.18,"cb":3680.57,"lb":15416.06,"tx":1678},{"date":"2024-01-07","sf":31322.59,"sb":22623.63,"sd":0,"so":0,"st":53946.22,"cf":7457.92,"cb":5553.61,"lb":16997.1,"tx":2090},{"date":"2024-01-14","sf":20175.85,"sb":16220.28,"sd":0,"so":0,"st":36396.13,"cf":5976.75,"cb":2848.12,"lb":12361.19,"tx":1685},{"date":"2024-01-21","sf":19930.97,"sb":16007.71,"sd":0,"so":0,"st":35938.68,"cf":0,"cb":0,"lb":11438.44,"tx":1703},{"date":"2024-01-28","sf":20648.73,"sb":15747.42,"sd":0,"so":0,"st":36396.15,"cf":6623.89,"cb":2874.33,"lb":12841.78,"tx":null},{"date":"2024-02-04","sf":18069.81,"sb":14524.23,"sd":0,"so":0,"st":32594.04,"cf":5167.66,"cb":3644.29,"lb":12290.86,"tx":1560},{"date":"2024-02-11","sf":18329.16,"sb":14338.17,"sd":0,"so":0,"st":32667.33,"cf":4939.22,"cb":2899.48,"lb":11664.52,"tx":1587},{"date":"2024-02-18","sf":17925.12,"sb":14526.97,"sd":0,"so":0,"st":32452.09,"cf":5352.77,"cb":2979.57,"lb":11837.6,"tx":1608},{"date":"2024-02-25","sf":15227.34,"sb":12401.21,"sd":0,"so":0,"st":27628.55,"cf":5582.22,"cb":3123.79,"lb":11514.52,"tx":1502},{"date":"2024-03-03","sf":15976.19,"sb":12621.56,"sd":0,"so":0,"st":28597.75,"cf":4525.13,"cb":2935.36,"lb":11059.27,"tx":1583},{"date":"2024-03-10","sf":14985.92,"sb":12016.42,"sd":0,"so":0,"st":27002.34,"cf":5182.42,"cb":3261.47,"lb":10972.84,"tx":1484},{"date":"2024-03-17","sf":14918.15,"sb":11961.91,"sd":0,"so":0,"st":26880.06,"cf":0,"cb":0,"lb":11186.78,"tx":1492},{"date":"2024-03-24","sf":16259.7,"sb":11975.31,"sd":0,"so":0,"st":28235.01,"cf":5182.07,"cb":0,"lb":11815.2,"tx":1492},{"date":"2024-03-31","sf":18410.74,"sb":12829.72,"sd":0,"so":0,"st":31240.46,"cf":0,"cb":0,"lb":12193.28,"tx":1469},{"date":"2024-04-07","sf":18079.17,"sb":13580.59,"sd":0,"so":0,"st":31659.76,"cf":5835.66,"cb":2128.37,"lb":12335.34,"tx":1559},{"date":"2024-04-14","sf":15336.25,"sb":12136.38,"sd":0,"so":0,"st":27472.63,"cf":4455.11,"cb":2570.48,"lb":10940.39,"tx":1551},{"date":"2024-04-21","sf":17350.3,"sb":13046.3,"sd":0,"so":0,"st":30396.6,"cf":5644.19,"cb":4501.55,"lb":11655.98,"tx":1571},{"date":"2024-04-28","sf":20362.35,"sb":15365.62,"sd":0,"so":0,"st":35727.97,"cf":5552.82,"cb":3118.69,"lb":12522.94,"tx":1664},{"date":"2024-05-05","sf":14618.14,"sb":10820.8,"sd":0,"so":0,"st":25438.94,"cf":4798.71,"cb":2607.65,"lb":11143.0,"tx":1423},{"date":"2024-05-12","sf":15948.6,"sb":12392.67,"sd":0,"so":0,"st":28341.27,"cf":5107.19,"cb":2805.29,"lb":11158.25,"tx":1532},{"date":"2024-05-19","sf":13687.26,"sb":10544.76,"sd":0,"so":0,"st":24232.02,"cf":5053.13,"cb":1672.24,"lb":12230.45,"tx":1335},{"date":"2024-05-26","sf":13020.11,"sb":11316.81,"sd":0,"so":0,"st":24336.92,"cf":4289.5,"cb":0,"lb":9505.32,"tx":1655},{"date":"2024-06-02","sf":14428.19,"sb":11666.94,"sd":0,"so":0,"st":26095.13,"cf":4398.65,"cb":1735.65,"lb":10160.66,"tx":1492},{"date":"2024-06-09","sf":16299.07,"sb":12629.64,"sd":0,"so":0,"st":28928.71,"cf":4251.95,"cb":2419.48,"lb":10775.37,"tx":1492},{"date":"2024-06-16","sf":12715.4,"sb":11441.61,"sd":0,"so":0,"st":24157.01,"cf":3683.91,"cb":1085.32,"lb":10173.52,"tx":1406},{"date":"2024-06-23","sf":12261.29,"sb":10084.61,"sd":0,"so":0,"st":22345.9,"cf":3999.33,"cb":1485.95,"lb":9429.44,"tx":1370},{"date":"2024-06-30","sf":17286.98,"sb":12641.87,"sd":0,"so":0,"st":29928.85,"cf":4103.89,"cb":1952.85,"lb":11214.66,"tx":1519},{"date":"2024-07-07","sf":14800.65,"sb":11594.69,"sd":0,"so":0,"st":26395.34,"cf":4410.6,"cb":3067.44,"lb":10339.56,"tx":1513},{"date":"2024-07-14","sf":15979.27,"sb":12195.02,"sd":0,"so":0,"st":28174.29,"cf":5875.6,"cb":3177.28,"lb":11126.0,"tx":1533},{"date":"2024-07-21","sf":11530.15,"sb":9523.36,"sd":0,"so":0,"st":21053.51,"cf":4032.39,"cb":2427.83,"lb":10148.99,"tx":1235},{"date":"2024-07-28","sf":17919.48,"sb":12973.58,"sd":0,"so":0,"st":30893.06,"cf":5032.12,"cb":2819.36,"lb":12104.71,"tx":1558},{"date":"2024-08-04","sf":12492.86,"sb":10810.95,"sd":0,"so":0,"st":23303.81,"cf":4133.13,"cb":2544.11,"lb":10141.08,"tx":1395},{"date":"2024-08-11","sf":13694.87,"sb":10974.99,"sd":0,"so":0,"st":24669.86,"cf":4508.53,"cb":3106.01,"lb":10532.46,"tx":1609},{"date":"2024-08-18","sf":13055.38,"sb":10781.46,"sd":0,"so":0,"st":23836.84,"cf":4691.1,"cb":2351.23,"lb":9956.13,"tx":1400},{"date":"2024-08-25","sf":14095.59,"sb":11049.04,"sd":0,"so":0,"st":25144.63,"cf":4301.52,"cb":3081.07,"lb":11101.99,"tx":1383},{"date":"2024-09-01","sf":16956.25,"sb":12162.17,"sd":0,"so":0,"st":29118.42,"cf":6680.83,"cb":3481.48,"lb":0,"tx":1626},{"date":"2024-09-08","sf":17135.18,"sb":12123.66,"sd":0,"so":0,"st":29258.84,"cf":0,"cb":0,"lb":12100.15,"tx":1626},{"date":"2024-09-15","sf":17744.8,"sb":13100.57,"sd":0,"so":0,"st":30845.37,"cf":5772.63,"cb":1330.8,"lb":10663.27,"tx":1666},{"date":"2024-09-22","sf":13111.03,"sb":11209.8,"sd":0,"so":0,"st":24320.83,"cf":4791.67,"cb":1985.38,"lb":11158.09,"tx":1589},{"date":"2024-09-29","sf":14590.38,"sb":12005.87,"sd":0,"so":0,"st":26596.25,"cf":4306.26,"cb":3151.54,"lb":9530.24,"tx":1586},{"date":"2024-10-06","sf":15029.8,"sb":11865.88,"sd":0,"so":0,"st":26895.68,"cf":4696.22,"cb":2936.66,"lb":10402.22,"tx":1488},{"date":"2024-10-13","sf":14633.34,"sb":12327.14,"sd":0,"so":0,"st":26960.48,"cf":4690.21,"cb":2766.69,"lb":10383.43,"tx":1423},{"date":"2024-10-20","sf":16569.45,"sb":12634.98,"sd":0,"so":0,"st":29204.43,"cf":7020.56,"cb":3861.95,"lb":12069.04,"tx":1621},{"date":"2024-10-27","sf":15662.95,"sb":12645.63,"sd":0,"so":0,"st":28308.58,"cf":6332.56,"cb":4058.22,"lb":10727.52,"tx":1420},{"date":"2024-11-03","sf":16561.28,"sb":13008.31,"sd":0,"so":0,"st":29569.59,"cf":5142.76,"cb":2819.77,"lb":11049.96,"tx":1482},{"date":"2024-11-10","sf":13259.61,"sb":11301.57,"sd":0,"so":0,"st":24561.18,"cf":3338.05,"cb":2177.83,"lb":9925.1,"tx":1307},{"date":"2024-11-17","sf":11893.68,"sb":10255.07,"sd":0,"so":0,"st":22148.75,"cf":3501.7,"cb":2699.37,"lb":10041.91,"tx":1222},{"date":"2024-11-24","sf":13151.56,"sb":11691.27,"sd":0,"so":0,"st":24842.83,"cf":3826.18,"cb":2819.01,"lb":10311.35,"tx":1338},{"date":"2024-12-01","sf":15811.33,"sb":12340.13,"sd":0,"so":0,"st":28151.46,"cf":4623.09,"cb":3903.89,"lb":12250.8,"tx":1515},{"date":"2024-12-08","sf":17394.54,"sb":11621.86,"sd":0,"so":0,"st":29016.4,"cf":6434.28,"cb":3563.48,"lb":12565.69,"tx":1574},{"date":"2024-12-15","sf":16360.21,"sb":14021.96,"sd":0,"so":0,"st":30382.17,"cf":5688.39,"cb":5486.19,"lb":11951.44,"tx":1558},{"date":"2024-12-22","sf":13385.04,"sb":13054.74,"sd":0,"so":0,"st":26439.78,"cf":5358.1,"cb":5025.36,"lb":9729.6,"tx":1447},{"date":"2024-12-29","sf":17553.09,"sb":14964.22,"sd":0,"so":0,"st":32517.31,"cf":5183.45,"cb":1975.13,"lb":11633.14,"tx":1678},{"date":"2025-01-05","sf":31624.17,"sb":21873.87,"sd":0,"so":0,"st":53498.04,"cf":8115.76,"cb":2875.0,"lb":16522.71,"tx":1953},{"date":"2025-01-12","sf":20101.73,"sb":15980.5,"sd":0,"so":0,"st":36082.23,"cf":4832.87,"cb":3115.46,"lb":11479.73,"tx":1647},{"date":"2025-01-19","sf":15508.01,"sb":12116.57,"sd":0,"so":0,"st":27624.58,"cf":4510.22,"cb":3398.46,"lb":10128.87,"tx":1276},{"date":"2025-01-26","sf":14265.98,"sb":11103.62,"sd":0,"so":0,"st":25369.6,"cf":5339.04,"cb":4354.99,"lb":10788.14,"tx":1286},{"date":"2025-02-02","sf":14839.8,"sb":12103.5,"sd":0,"so":0,"st":26943.3,"cf":4177.76,"cb":2539.22,"lb":0,"tx":1332},{"date":"2025-02-09","sf":14944.79,"sb":12683.08,"sd":0,"so":0,"st":27627.87,"cf":3904.74,"cb":2291.63,"lb":10245.92,"tx":1286},{"date":"2025-02-16","sf":13057.06,"sb":9750.35,"sd":0,"so":0,"st":22807.41,"cf":4844.75,"cb":1605.68,"lb":9863.69,"tx":1187},{"date":"2025-02-23","sf":12524.96,"sb":10765.31,"sd":0,"so":0,"st":23290.27,"cf":3949.66,"cb":1937.15,"lb":9162.97,"tx":1203},{"date":"2025-03-02","sf":14472.91,"sb":10467.55,"sd":0,"so":0,"st":24940.46,"cf":4366.65,"cb":1115.64,"lb":9107.93,"tx":1148},{"date":"2025-03-09","sf":13270.6,"sb":10442.87,"sd":0,"so":0,"st":23713.47,"cf":3136.21,"cb":2191.21,"lb":9637.77,"tx":1244},{"date":"2025-03-16","sf":13682.89,"sb":10261.46,"sd":0,"so":0,"st":23944.35,"cf":3501.85,"cb":1087.3,"lb":8811.73,"tx":1211},{"date":"2025-03-23","sf":12275.86,"sb":10222.11,"sd":0,"so":0,"st":22497.97,"cf":4235.47,"cb":2200.94,"lb":9159.0,"tx":1109},{"date":"2025-03-30","sf":11605.17,"sb":9698.19,"sd":0,"so":0,"st":21303.36,"cf":3640.73,"cb":3317.0,"lb":8767.59,"tx":1108},{"date":"2025-04-06","sf":10999.68,"sb":9350.74,"sd":0,"so":0,"st":20350.42,"cf":3450.22,"cb":1019.48,"lb":8901.34,"tx":1114},{"date":"2025-04-13","sf":12498.77,"sb":10779.97,"sd":0,"so":0,"st":23278.74,"cf":4004.12,"cb":2826.34,"lb":8740.19,"tx":1245},{"date":"2025-04-20","sf":11787.33,"sb":10367.94,"sd":0,"so":0,"st":22155.27,"cf":4366.54,"cb":2042.86,"lb":9928.6,"tx":1124},{"date":"2025-04-27","sf":19168.17,"sb":14128.16,"sd":0,"so":0,"st":33296.33,"cf":3745.32,"cb":2405.32,"lb":11372.39,"tx":1420},{"date":"2025-05-04","sf":11683.97,"sb":9592.9,"sd":0,"so":0,"st":21276.87,"cf":4541.38,"cb":1917.38,"lb":8677.71,"tx":1128},{"date":"2025-05-11","sf":12529.05,"sb":9953.08,"sd":0,"so":0,"st":22482.13,"cf":4307.6,"cb":2128.42,"lb":9023.62,"tx":1145},{"date":"2025-05-18","sf":12086.7,"sb":10059.19,"sd":0,"so":0,"st":22145.89,"cf":3979.5,"cb":2263.1,"lb":8530.22,"tx":1206},{"date":"2025-05-25","sf":12634.34,"sb":12586.1,"sd":0,"so":0,"st":25220.44,"cf":4067.39,"cb":3137.65,"lb":8970.56,"tx":1258},{"date":"2025-06-01","sf":12177.55,"sb":9749.38,"sd":0,"so":0,"st":21926.93,"cf":4554.54,"cb":734.58,"lb":8772.76,"tx":1168},{"date":"2025-06-08","sf":14213.84,"sb":10634.65,"sd":0,"so":0,"st":24848.49,"cf":3468.41,"cb":1881.91,"lb":9208.17,"tx":1193},{"date":"2025-06-15","sf":11624.17,"sb":9010.14,"sd":0,"so":0,"st":20634.31,"cf":0,"cb":0,"lb":8849.95,"tx":1139},{"date":"2025-06-22","sf":14463.65,"sb":10979.2,"sd":0,"so":0,"st":25442.85,"cf":3597.47,"cb":0,"lb":9176.8,"tx":1210},{"date":"2025-06-29","sf":12527.61,"sb":9226.13,"sd":0,"so":0,"st":21753.74,"cf":0,"cb":0,"lb":8381.61,"tx":1111},{"date":"2025-07-06","sf":12937.66,"sb":10092.4,"sd":0,"so":0,"st":23030.06,"cf":0,"cb":0,"lb":8671.99,"tx":null},{"date":"2025-07-13","sf":13696.81,"sb":10355.08,"sd":0,"so":0,"st":24051.89,"cf":0,"cb":0,"lb":8805.48,"tx":null},{"date":"2025-07-20","sf":11613.41,"sb":9053.82,"sd":0,"so":0,"st":20667.23,"cf":3731.09,"cb":2176.62,"lb":8540.4,"tx":null},{"date":"2025-07-27","sf":12574.92,"sb":9861.81,"sd":0,"so":0,"st":22436.73,"cf":0,"cb":0,"lb":8904.8,"tx":null},{"date":"2025-08-03","sf":10669.33,"sb":8384.32,"sd":0,"so":0,"st":19053.65,"cf":0,"cb":0,"lb":0,"tx":null},{"date":"2025-08-10","sf":10403.65,"sb":9020.96,"sd":0,"so":0,"st":19424.61,"cf":3210.89,"cb":1107.26,"lb":7978.69,"tx":1047},{"date":"2025-08-17","sf":11809.48,"sb":10120.0,"sd":0,"so":0,"st":21929.48,"cf":3856.3,"cb":2788.74,"lb":8246.66,"tx":1132},{"date":"2025-08-24","sf":12743.65,"sb":10259.82,"sd":0,"so":0,"st":23003.47,"cf":3631.43,"cb":961.67,"lb":8048.39,"tx":1137},{"date":"2025-08-31","sf":11529.74,"sb":9468.7,"sd":0,"so":0,"st":20998.44,"cf":4218.39,"cb":0,"lb":8215.64,"tx":1044},{"date":"2025-09-07","sf":14169.57,"sb":10591.13,"sd":0,"so":0,"st":24760.7,"cf":4726.41,"cb":2170.69,"lb":8055.8,"tx":1220},{"date":"2025-09-14","sf":10602.0,"sb":8698.87,"sd":0,"so":0,"st":19300.87,"cf":2948.14,"cb":0,"lb":8146.5,"tx":null},{"date":"2025-09-21","sf":11404.17,"sb":9157.22,"sd":0,"so":0,"st":20561.39,"cf":3401.2,"cb":2846.95,"lb":8335.96,"tx":null},{"date":"2025-10-05","sf":12780.87,"sb":10290.87,"sd":0,"so":0,"st":23071.74,"cf":3653.97,"cb":2639.89,"lb":0,"tx":null},{"date":"2025-10-12","sf":10139.83,"sb":8943.13,"sd":0,"so":0,"st":19082.96,"cf":3655.79,"cb":2780.45,"lb":0,"tx":null},{"date":"2025-10-19","sf":12166.78,"sb":9703.91,"sd":0,"so":0,"st":21870.69,"cf":3710.17,"cb":2501.55,"lb":8104.64,"tx":1088},{"date":"2025-10-26","sf":14306.61,"sb":10295.39,"sd":0,"so":0,"st":24602.0,"cf":5235.92,"cb":3482.07,"lb":8929.11,"tx":1112},{"date":"2025-11-02","sf":12608.87,"sb":9867.3,"sd":0,"so":0,"st":22476.17,"cf":3563.64,"cb":1839.67,"lb":8985.47,"tx":1071},{"date":"2025-11-09","sf":12966.52,"sb":9609.65,"sd":0,"so":0,"st":22576.17,"cf":3737.18,"cb":2245.27,"lb":8463.31,"tx":1101},{"date":"2025-11-16","sf":12837.04,"sb":9937.83,"sd":0,"so":0,"st":22774.87,"cf":4150.23,"cb":2870.93,"lb":8503.95,"tx":1132},{"date":"2025-11-23","sf":12527.39,"sb":8839.22,"sd":0,"so":0,"st":21366.61,"cf":3764.38,"cb":3259.45,"lb":8267.23,"tx":1007},{"date":"2025-11-30","sf":13500.0,"sb":10621.04,"sd":0,"so":0,"st":24121.04,"cf":3153.64,"cb":2179.98,"lb":8411.46,"tx":1091},{"date":"2025-12-07","sf":11167.39,"sb":9285.99,"sd":0,"so":0,"st":20453.38,"cf":3704.58,"cb":2431.68,"lb":7788.92,"tx":983},{"date":"2025-12-14","sf":11390.35,"sb":9507.04,"sd":0,"so":0,"st":20897.39,"cf":2910.09,"cb":2304.31,"lb":8480.82,"tx":1039},{"date":"2025-12-21","sf":14565.48,"sb":12869.39,"sd":0,"so":0,"st":27434.87,"cf":5571.16,"cb":3545.56,"lb":9679.77,"tx":1283},{"date":"2025-12-28","sf":17609.22,"sb":13784.7,"sd":0,"so":0,"st":31393.92,"cf":3971.6,"cb":4449.69,"lb":10610.68,"tx":1238},{"date":"2026-01-04","sf":27176.71,"sb":19201.22,"sd":0,"so":0,"st":46377.93,"cf":7083.65,"cb":3399.74,"lb":13421.53,"tx":1657},{"date":"2026-01-11","sf":17440.35,"sb":14988.78,"sd":0,"so":0,"st":32429.13,"cf":5168.51,"cb":2283.12,"lb":9904.17,"tx":1362},{"date":"2026-01-18","sf":15935.22,"sb":12452.96,"sd":0,"so":0,"st":28388.18,"cf":4511.69,"cb":2637.79,"lb":9387.38,"tx":1257},{"date":"2026-01-25","sf":15758.87,"sb":12473.39,"sd":0,"so":0,"st":28232.26,"cf":5223.67,"cb":2350.63,"lb":8996.68,"tx":1253},{"date":"2026-02-01","sf":17001.39,"sb":13589.73,"sd":0,"so":0,"st":30591.12,"cf":4089.18,"cb":3660.98,"lb":9191.6,"tx":1337},{"date":"2026-02-08","sf":16421.0,"sb":12496.17,"sd":0,"so":0,"st":28917.17,"cf":5095.67,"cb":2290.93,"lb":9654.68,"tx":1228},{"date":"2026-02-15","sf":13022.26,"sb":10431.65,"sd":0,"so":0,"st":23453.91,"cf":4297.2,"cb":2401.48,"lb":8424.51,"tx":1117},{"date":"2026-02-22","sf":14854.78,"sb":12192.26,"sd":0,"so":0,"st":27047.04,"cf":3109.4,"cb":2342.11,"lb":8312.43,"tx":1260},{"date":"2026-03-01","sf":13699.57,"sb":11115.57,"sd":0,"so":0,"st":24815.14,"cf":4046.24,"cb":2548.24,"lb":7948.3,"tx":1143},{"date":"2026-03-08","sf":13367.83,"sb":10855.39,"sd":0,"so":0,"st":24223.22,"cf":3716.18,"cb":2746.83,"lb":8118.45,"tx":1155},{"date":"2026-03-15","sf":12625.3,"sb":11602.78,"sd":0,"so":0,"st":24228.08,"cf":4626.19,"cb":2492.91,"lb":9159.08,"tx":1207},{"date":"2026-03-22","sf":11722.0,"sb":10863.3,"sd":0,"so":0,"st":22585.3,"cf":3380.13,"cb":1824.85,"lb":8263.52,"tx":1116},{"date":"2026-03-29","sf":12058.78,"sb":10089.83,"sd":0,"so":0,"st":22148.61,"cf":2609.61,"cb":3331.4,"lb":7793.11,"tx":1065},{"date":"2026-04-05","sf":14805.92,"sb":11816.35,"sd":444.95,"so":0,"st":27067.22,"cf":5769.11,"cb":2519.88,"lb":9004.99,"tx":1142},{"date":"2026-04-12","sf":11380.26,"sb":10370.87,"sd":779.96,"so":0,"st":22531.09,"cf":2515.12,"cb":1107.69,"lb":7249.98,"tx":971},{"date":"2026-04-19","sf":13682.54,"sb":10793.1,"sd":0,"so":0,"st":24475.64,"cf":2586.25,"cb":1929.89,"lb":7726.01,"tx":1122},{"date":"2026-04-26","sf":13418.21,"sb":11393.08,"sd":814.84,"so":0,"st":25626.13,"cf":5324.96,"cb":3923.9,"lb":9296.08,"tx":1204},{"date":"2026-05-03","sf":14485.62,"sb":11866.78,"sd":0,"so":0,"st":26352.4,"cf":3770.79,"cb":1654.91,"lb":8645.3,"tx":1216},{"date":"2026-05-10","sf":14289.74,"sb":10294.83,"sd":0,"so":0,"st":24584.57,"cf":4533.03,"cb":2930.75,"lb":7863.47,"tx":1077},{"date":"2026-05-17","sf":13264.96,"sb":10908.26,"sd":0,"so":0,"st":24173.22,"cf":3437.4,"cb":2241.6,"lb":8550.82,"tx":1184},{"date":"2026-05-24","sf":11306.83,"sb":9647.78,"sd":0,"so":0,"st":20954.61,"cf":2419.08,"cb":3033.99,"lb":7837.6,"tx":1055},{"date":"2026-05-31","sf":11543.0,"sb":10194.09,"sd":0,"so":0,"st":21737.09,"cf":4009.18,"cb":2614.58,"lb":7910.83,"tx":1086},{"date":"2026-06-07","sf":12949.83,"sb":9887.91,"sd":793.11,"so":0,"st":23630.85,"cf":3244.53,"cb":2409.39,"lb":8700.84,"tx":1036},{"date":"2026-06-14","sf":12873.78,"sb":10296.75,"sd":0,"so":0,"st":23170.53,"cf":4439.97,"cb":1966.84,"lb":9011.11,"tx":1126},{"date":"2026-06-21","sf":13166.65,"sb":10451.78,"sd":0,"so":0,"st":23618.43,"cf":4545.18,"cb":2459.01,"lb":8730.47,"tx":1123},{"date":"2026-06-28","sf":12356.61,"sb":9668.35,"sd":0,"so":0,"st":22024.96,"cf":3434.83,"cb":3140.56,"lb":8830.14,"tx":1036},{"date":"2026-07-05","sf":13478.04,"sb":10080.84,"sd":0,"so":0,"st":23558.88,"cf":4058.39,"cb":3920.17,"lb":9029.14,"tx":1121},{"date":"2026-07-12","sf":16014.65,"sb":11051.65,"sd":765.02,"so":0,"st":27831.32,"cf":4165.87,"cb":2000.0,"lb":10440.28,"tx":1119},{"date":"2026-07-19","sf":14718.74,"sb":10780.7,"sd":0,"so":0,"st":25499.44,"cf":5185.76,"cb":2307.09,"lb":9115.1,"tx":1158},{"date":"2026-07-26","sf":11520.52,"sb":9897.22,"sd":0,"so":0,"st":21417.74,"cf":3194.18,"cb":2375.9,"lb":8588.82,"tx":1069},{"date":"2026-08-02","sf":13521.44,"sb":10756.56,"sd":0,"so":0,"st":24278.0,"cf":4451.68,"cb":2477.04,"lb":8997.93,"tx":1195}];
+function allWeeksSync() { const m = {}; for (const r of HISTORY) m[r.date] = r; return m; }
+async function allWeeks(env) {
+  const m = allWeeksSync();
+  try { const l = await env.TOKENS.list({ prefix: 'week:' }); for (const k of l.keys) { const raw = await env.TOKENS.get(k.name); if (raw) { try { const r = JSON.parse(raw); if (r && r.date) m[r.date] = r; } catch (e) {} } } } catch (e) {}
+  return Object.keys(m).map(function (k) { return m[k]; });
+}
+function sumWeeks(weeks, from, to) {
+  let revenue = 0, cogs = 0, wagesSuper = 0, count = 0, any = false, anyCount = false;
+  for (const w of weeks) {
+    if (w.date >= from && w.date <= to) {
+      any = true;
+      revenue += w.st || 0; cogs += (w.cf || 0) + (w.cb || 0); wagesSuper += w.lb || 0;
+      if (w.tx) { count += w.tx; anyCount = true; }
+    }
+  }
+  return { any: any, acc: any ? { revenue: revenue, cogs: cogs, wagesSuper: wagesSuper } : null, count: anyCount ? count : null };
+}
+function monthBounds(mo) { const p = mo.split('-').map(Number); const last = new Date(Date.UTC(p[0], p[1], 0)).getUTCDate(); return { from: mo + '-01', to: mo + '-' + String(last).padStart(2, '0') }; }
+
 const ADAPTERS = {
 
   /* >>> ADAPTER 1: ACCOUNTING (connect this FIRST - it feeds most of the board)
@@ -123,67 +143,23 @@ const ADAPTERS = {
   */
   accounting: {
     configured: true,
-    auth: 'oauth',
-    oauth: {
-      authorizeUrl: 'https://login.xero.com/identity/connect/authorize',
-      tokenUrl: 'https://identity.xero.com/connect/token',
-      scopes: 'offline_access accounting.reports.profitandloss.read',
-      clientIdSecret: 'ACCOUNTING_CLIENT_ID',
-      clientSecretSecret: 'ACCOUNTING_CLIENT_SECRET',
-      tokenAuth: 'basic'   /* Xero's token endpoint wants HTTP Basic client auth */
-    },
-    /* Resolve (and cache in the token record) the Xero tenant id + org name. */
-    async _tenant(env, h) {
-      const tokens = await h.getTokens();
-      if (tokens && tokens.tenantId) return tokens.tenantId;
-      const conns = await h.fetchJson('https://api.xero.com/connections', {});
-      const org = (Array.isArray(conns) ? conns : []).find(function (c) { return c.tenantType === 'ORGANISATION'; }) ||
-                  (Array.isArray(conns) ? conns[0] : null);
-      if (!org) { const e = new Error('no xero organisation on this login'); e.status = 401; throw e; }
-      await h.saveTokens(Object.assign({}, tokens || {}, { tenantId: org.tenantId, org: org.tenantName }));
-      return org.tenantId;
-    },
-    async _report(env, h, from, to) {
-      const tenant = await this._tenant(env, h);
-      const url = 'https://api.xero.com/api.xro/2.0/Reports/ProfitAndLoss?fromDate=' + from + '&toDate=' + to;
-      return h.fetchJson(url, { headers: { 'Xero-tenant-id': tenant, 'Accept': 'application/json' } });
-    },
-    async status(env, h) {
-      const tokens = await h.getTokens();
-      if (!tokens || !tokens.access_token) return { connected: false };
-      const conns = await h.fetchJson('https://api.xero.com/connections', {});
-      const org = (Array.isArray(conns) ? conns : []).find(function (c) { return c.tenantType === 'ORGANISATION'; }) ||
-                  (Array.isArray(conns) ? conns[0] : null);
-      if (!org) return { connected: false };
-      await h.saveTokens(Object.assign({}, tokens, { tenantId: org.tenantId, org: org.tenantName }));
-      return {
-        connected: true,
-        org: org.tenantName,
-        sandbox: /demo company/i.test(org.tenantName || ''),
-        lastSync: null
-      };
-    },
+    auth: 'sheet',
+    oauth: {},
+    async status(env, h) { return { connected: true, org: null, sandbox: false, lastSync: null }; },
     async fetchRange(env, h, q) {
-      const rep = await this._report(env, h, q.from, q.to);
-      return parseXeroPnl(rep);
+      const s = sumWeeks(await allWeeks(env), q.from, q.to);
+      return s.acc || { revenue: null, cogs: null, wagesSuper: null };
     },
     async fetchMonthly(env, h, q) {
+      const weeks = await allWeeks(env);
       const months = monthList(q.fromMonth, q.toMonth);
-      const revenue = [], cogs = [], wagesSuper = [], overheads = [];
+      const revenue = [], cogs = [], wagesSuper = [];
       for (const mo of months) {
-        const parts = mo.split('-').map(Number);
-        const y = parts[0], m = parts[1];
-        const from = mo + '-01';
-        const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
-        const to = mo + '-' + String(last).padStart(2, '0');
-        try {
-          const v = parseXeroPnl(await this._report(env, h, from, to));
-          revenue.push(v.revenue); cogs.push(v.cogs); wagesSuper.push(v.wagesSuper); overheads.push(v.overheads);
-        } catch (e) {
-          revenue.push(null); cogs.push(null); wagesSuper.push(null); overheads.push(null);
-        }
+        const b = monthBounds(mo); const s = sumWeeks(weeks, b.from, b.to);
+        if (s.any) { revenue.push(s.acc.revenue); cogs.push(s.acc.cogs); wagesSuper.push(s.acc.wagesSuper); }
+        else { revenue.push(null); cogs.push(null); wagesSuper.push(null); }
       }
-      return { months: months, revenue: revenue, cogs: cogs, wagesSuper: wagesSuper, overheads: overheads };
+      return { months: months, revenue: revenue, cogs: cogs, wagesSuper: wagesSuper };
     }
   },
 
@@ -201,38 +177,19 @@ const ADAPTERS = {
      connect.squareupsandbox.com.
   */
   pos: {
-    /* Manual count rung: Dnero has no self-serve API, so the owner types one
-       number per month (the count of completed transactions). Stored in KV as
-       poscount:YYYY-MM. Money never comes from here - only the count. A period
-       returns a count only when it is exactly whole calendar months that all
-       have a saved figure; otherwise null (honest "not configured"). */
     configured: true,
-    auth: 'manual',
+    auth: 'sheet',
     oauth: {},
-    async status(env, h) {
-      return { connected: true, org: null, manualCount: true, sandbox: false, lastSync: null };
-    },
+    async status(env, h) { return { connected: true, org: null, sandbox: false, lastSync: null }; },
     async fetchRange(env, h, q) {
-      const months = wholeMonthsInRange(q.from, q.to);
-      if (!months) return { count: null };
-      let total = 0;
-      for (const mo of months) {
-        const v = await env.TOKENS.get('poscount:' + mo);
-        if (v == null || v === '') return { count: null };
-        const n = parseInt(v, 10);
-        if (!isFinite(n)) return { count: null };
-        total += n;
-      }
-      return { count: total };
+      const s = sumWeeks(await allWeeks(env), q.from, q.to);
+      return { count: s.count };
     },
     async fetchMonthly(env, h, q) {
+      const weeks = await allWeeks(env);
       const months = monthList(q.fromMonth, q.toMonth);
       const count = [];
-      for (const mo of months) {
-        const v = await env.TOKENS.get('poscount:' + mo);
-        const n = (v == null || v === '') ? NaN : parseInt(v, 10);
-        count.push(isFinite(n) ? n : null);
-      }
+      for (const mo of months) { const b = monthBounds(mo); const s = sumWeeks(weeks, b.from, b.to); count.push(s.any ? s.count : null); }
       return { months: months, count: count };
     }
   },
@@ -508,6 +465,30 @@ const TRAINING_DEFAULT = { sections: [
   { id: 'foh', title: 'Front of house / service', lessons: [] },
   { id: 'kitchen', title: 'Kitchen & food safety', lessons: [] }
 ] };
+async function apiWeekSave(env, request) {
+  let b; try { b = await request.json(); } catch (e) { return json({ ok: false }, 400); }
+  const d = String(b.date || '');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return json({ ok: false, plain: 'Pick the week-ending date.' }, 400);
+  const nf = function (v) { const n = parseFloat(v); return isFinite(n) ? n : 0; };
+  const sf = nf(b.sf), sb = nf(b.sb), sd = nf(b.sd), so = nf(b.so);
+  const st = (b.st !== undefined && b.st !== null && b.st !== '') ? nf(b.st) : (sf + sb + sd + so);
+  const rec = { date: d, sf: sf, sb: sb, sd: sd, so: so, st: st, cf: nf(b.cf), cb: nf(b.cb), lb: nf(b.lb), tx: (b.tx !== undefined && b.tx !== null && b.tx !== '') ? parseInt(b.tx, 10) : null };
+  await env.TOKENS.put('week:' + d, JSON.stringify(rec));
+  try { const mc = await env.TOKENS.list({ prefix: 'metricscache:' }); for (const k of mc.keys) await env.TOKENS.delete(k.name); } catch (e) {}
+  return json({ ok: true, date: d });
+}
+async function apiWeekDelete(env, request) {
+  let b; try { b = await request.json(); } catch (e) { return json({ ok: false }, 400); }
+  const d = String(b.date || '');
+  if (env.TOKENS && /^\d{4}-\d{2}-\d{2}$/.test(d)) { await env.TOKENS.delete('week:' + d); try { const mc = await env.TOKENS.list({ prefix: 'metricscache:' }); for (const k of mc.keys) await env.TOKENS.delete(k.name); } catch (e) {} }
+  return json({ ok: true });
+}
+async function apiWeekList(env) {
+  const m = {}; for (const r of HISTORY) m[r.date] = r;
+  try { const l = await env.TOKENS.list({ prefix: 'week:' }); for (const k of l.keys) { const raw = await env.TOKENS.get(k.name); if (raw) { try { const r = JSON.parse(raw); m[r.date] = r; } catch (e) {} } } } catch (e) {}
+  const arr = Object.keys(m).map(function (k) { return m[k]; }).sort(function (a, b) { return a.date < b.date ? 1 : -1; }).slice(0, 16);
+  return json({ weeks: arr });
+}
 async function getTraining(env) {
   if (!env.TOKENS) return TRAINING_DEFAULT;
   const raw = await env.TOKENS.get('training:content');
@@ -1072,6 +1053,18 @@ export default {
     if (path === '/api/training' && request.method === 'POST') {
       if (!isOwner) return json({ error: 'forbidden' }, 403);
       return apiTrainingSave(env, request);
+    }
+    if (path === '/api/week' && request.method === 'GET') {
+      if (!isOwner) return json({ error: 'forbidden' }, 403);
+      return apiWeekList(env);
+    }
+    if (path === '/api/week' && request.method === 'POST') {
+      if (!isOwner) return json({ error: 'forbidden' }, 403);
+      return apiWeekSave(env, request);
+    }
+    if (path === '/api/week/delete' && request.method === 'POST') {
+      if (!isOwner) return json({ error: 'forbidden' }, 403);
+      return apiWeekDelete(env, request);
     }
     const authRoute = /^\/auth\/(accounting|pos|rostering)\/(start|callback)$/.exec(path);
     if (authRoute && request.method === 'GET') {

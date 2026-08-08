@@ -287,9 +287,7 @@ var KIT_CONFIG = {
     "transactions",
     "acs",
     "cogs",
-    "wage",
-    "overheads",
-    "profit"
+    "wage"
   ],
   "startLevel": "live",
   "kitDate": "July 2026",
@@ -340,6 +338,7 @@ function loadSettings() {
 }
 function saveSettings() { try { localStorage.setItem('vd_settings', JSON.stringify(SETTINGS)); } catch (e) {} }
 var SETTINGS = loadSettings();
+SETTINGS.dataMode = 'live';
 
 function loadJson(key, fallback) {
   try { var raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch (e) { return fallback; }
@@ -805,9 +804,8 @@ function render() {
     sideLabel('Numbers');
     side.appendChild(sideItem('Overview', { active: state.view === 'dashboard', onclick: go('dashboard') }));
     if (isOwner()) {
-      side.appendChild(sideItem(dataLabel, { active: state.view === dataKey, onclick: go(dataKey) }));
+      side.appendChild(sideItem('Add this week', { active: state.view === 'weekentry', onclick: go('weekentry') }));
       side.appendChild(sideItem('Targets', { active: state.view === 'targets', onclick: go('targets') }));
-      if (!isManual()) side.appendChild(sideItem('Check your numbers', { active: state.view === 'recon', dot: (anyConfiguredSource() && unconfirmedConnectedMetrics().length), onclick: go('recon') }));
     }
   }
 
@@ -824,8 +822,6 @@ function render() {
   if (ROLE !== 'trainee') {
     sideLabel('Your tools');
     side.appendChild(sideItem('Loaded (rosters)', { href: TOOL_LINKS.loaded }));
-    if (ROLE === 'owner' || ROLE === 'manager' || ROLE === 'headchef') side.appendChild(sideItem('Dnero (POS)', { href: TOOL_LINKS.dnero }));
-    if (isOwner()) side.appendChild(sideItem('Xero (books)', { href: TOOL_LINKS.xero }));
   }
 
   side.appendChild(el('div', 'side-spacer'));
@@ -838,12 +834,12 @@ function render() {
   main.appendChild(top);
   main.appendChild(el('div', 'top-rule'));
 
-  if (!isManual() && anyConfiguredSource() && unconfirmedOrgs().length) {
+  if (false) {
     var ub = el('div', 'banner banner-amber');
     ub.innerHTML = '<b>New connection.</b> Confirm the connected account is your business on the <span class="banner-link" id="go-conn">Data &amp; connections screen</span>.';
     main.appendChild(ub);
   }
-  if (!isManual() && anyConfiguredSource() && unconfirmedConnectedMetrics().length) {
+  if (false) {
     var vb = el('div', 'banner banner-amber');
     vb.innerHTML = '<b>Not verified yet.</b> Check these against your own records on the <span class="banner-link" id="go-recon">Check your numbers screen</span>.';
     main.appendChild(vb);
@@ -857,7 +853,7 @@ function render() {
   }
 
   if (isManual() && (state.view === 'connections' || state.view === 'recon')) state.view = 'dashboard';
-  if (!isOwner() && ['connections', 'recon', 'settings', 'targets', 'admin', 'enter'].indexOf(state.view) >= 0) state.view = 'dashboard';
+  if (!isOwner() && ['connections', 'recon', 'settings', 'targets', 'admin', 'enter', 'weekentry'].indexOf(state.view) >= 0) state.view = 'dashboard';
   if (ROLE === 'trainee' && state.view !== 'training') state.view = 'training';
   var v = state.view;
   if (v === 'dashboard') renderDashboard(main);
@@ -865,6 +861,7 @@ function render() {
   else if (v === 'connections') renderConnections(main);
   else if (v === 'recon') renderRecon(main);
   else if (v === 'targets') renderTargets(main);
+  else if (v === 'weekentry') renderWeekEntry(main);
   else if (v === 'admin') renderAdmin(main);
   else if (v === 'training') renderTraining(main);
   else if (v === 'checklists' || v === 'team') renderHub(main, v);
@@ -883,6 +880,52 @@ function render() {
   if (goR) goR.onclick = function () { state.view = 'recon'; render(); };
   var goC = document.getElementById('go-conn');
   if (goC) goC.onclick = function () { state.view = 'connections'; render(); };
+}
+
+function renderWeekEntry(root) {
+  root.appendChild(el('div', 'screen-title', 'Add this week'));
+  root.appendChild(el('p', 'screen-sub', 'Enter this week\u2019s numbers from your KPI sheet \u2014 sales, cost of goods, wages and transactions. Profit and overheads stay in your own sheet and never come here. Saved figures show on the board straight away.'));
+  var grid = el('div', 'set-grid');
+  function field(label, node) { var c = el('div', 'set-cell'); c.appendChild(el('div', 'set-label', label)); c.appendChild(node); return c; }
+  function inp(ph, type) { var i = document.createElement('input'); i.type = type || 'number'; i.step = 'any'; i.placeholder = ph || ''; i.style.cssText = 'font-family:DM Sans,sans-serif;font-size:13px;padding:8px 10px;border:1px solid var(--border-med);border-radius:8px;width:100%;box-sizing:border-box'; return i; }
+  var dDate = inp('', 'date');
+  var dFood = inp('$'), dBev = inp('$'), dDeliv = inp('$'), dOther = inp('$');
+  var dCogsF = inp('$'), dCogsB = inp('$'), dLabour = inp('$'), dTx = inp('count');
+  grid.appendChild(field('Week ending', dDate));
+  grid.appendChild(field('Food sales', dFood));
+  grid.appendChild(field('Beverage sales', dBev));
+  grid.appendChild(field('Deliveroo (optional)', dDeliv));
+  grid.appendChild(field('Other (optional)', dOther));
+  grid.appendChild(field('Cost of goods \u2013 Food', dCogsF));
+  grid.appendChild(field('Cost of goods \u2013 Beverage', dCogsB));
+  grid.appendChild(field('Wages (incl PAYG & super)', dLabour));
+  grid.appendChild(field('Transactions', dTx));
+  root.appendChild(grid);
+  var msg = el('div', 'conn-line'); msg.style.marginTop = '0.6rem';
+  var btn = el('button', 'btn-primary-dash', 'Save week');
+  btn.onclick = function () {
+    if (!dDate.value) { msg.textContent = 'Pick the week-ending date.'; return; }
+    msg.textContent = 'Saving\u2026';
+    fetch('/api/week', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date: dDate.value, sf: dFood.value, sb: dBev.value, sd: dDeliv.value, so: dOther.value, cf: dCogsF.value, cb: dCogsB.value, lb: dLabour.value, tx: dTx.value }) })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (o) { if (o.ok && o.j.ok) { msg.textContent = 'Saved. It is on the board now.'; [dFood, dBev, dDeliv, dOther, dCogsF, dCogsB, dLabour, dTx].forEach(function (x) { x.value = ''; }); state.data = null; loadWeeks(); } else { msg.textContent = (o.j && o.j.plain) || 'Could not save.'; } })
+      .catch(function () { msg.textContent = 'Could not save. Try again.'; });
+  };
+  root.appendChild(btn); root.appendChild(msg);
+  root.appendChild(el('div', 'section-sub', 'Recent weeks'));
+  var listWrap = el('div'); root.appendChild(listWrap);
+  function loadWeeks() {
+    listWrap.innerHTML = '';
+    fetch('/api/week', { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (j) {
+      var ws = (j && j.weeks) || [];
+      ws.forEach(function (w) {
+        var row = el('div', 'manual-row');
+        row.textContent = w.date + '  \u00b7  $' + Math.round(w.st).toLocaleString() + '  \u00b7  ' + (w.tx || '\u2014') + ' transactions';
+        listWrap.appendChild(row);
+      });
+    }).catch(function () {});
+  }
+  loadWeeks();
 }
 
 function renderTargets(root) {
