@@ -491,7 +491,7 @@ async function apiUserSave(env, request) {
   const password = String((b && b.password) || '');
   if (!id) return json({ ok: false, plain: 'Enter a username (letters and numbers, no spaces).' }, 400);
   if (id === 'owner') return json({ ok: false, plain: 'That username is reserved.' }, 400);
-  if (['manager', 'headchef', 'supervisor'].indexOf(role) < 0) return json({ ok: false, plain: 'Pick a role.' }, 400);
+  if (['manager', 'headchef', 'supervisor', 'trainee'].indexOf(role) < 0) return json({ ok: false, plain: 'Pick a role.' }, 400);
   if (password.length < 6) return json({ ok: false, plain: 'Password must be at least 6 characters.' }, 400);
   await putUser(env, id, name, role, password);
   return json({ ok: true, id: id });
@@ -502,13 +502,48 @@ async function apiUserDelete(env, request) {
   if (id && env.TOKENS) await env.TOKENS.delete('user:' + id);
   return json({ ok: true });
 }
+const TRAINING_DEFAULT = { sections: [
+  { id: 'onboarding', title: 'Onboarding / new starter', lessons: [] },
+  { id: 'coffee', title: 'Coffee & barista', lessons: [] },
+  { id: 'foh', title: 'Front of house / service', lessons: [] },
+  { id: 'kitchen', title: 'Kitchen & food safety', lessons: [] }
+] };
+async function getTraining(env) {
+  if (!env.TOKENS) return TRAINING_DEFAULT;
+  const raw = await env.TOKENS.get('training:content');
+  if (!raw) return TRAINING_DEFAULT;
+  try { return JSON.parse(raw); } catch (e) { return TRAINING_DEFAULT; }
+}
+async function apiTrainingSave(env, request) {
+  let b; try { b = await request.json(); } catch (e) { return json({ ok: false }, 400); }
+  const content = b && b.content;
+  if (!content || !Array.isArray(content.sections)) return json({ ok: false }, 400);
+  const clean = { sections: content.sections.slice(0, 50).map(function (sec) {
+    return {
+      id: String(sec.id || ('s' + Date.now())).slice(0, 40),
+      title: String(sec.title || '').slice(0, 120),
+      lessons: Array.isArray(sec.lessons) ? sec.lessons.slice(0, 100).map(function (l) {
+        return {
+          id: String(l.id || ('l' + Date.now())).slice(0, 40),
+          title: String(l.title || '').slice(0, 160),
+          video: String(l.video || '').slice(0, 400),
+          steps: String(l.steps || '').slice(0, 4000)
+        };
+      }) : []
+    };
+  }) };
+  await env.TOKENS.put('training:content', JSON.stringify(clean));
+  return json({ ok: true });
+}
 function roleMetrics(role) {
   if (role === 'owner') return ['revenue', 'transactions', 'acs', 'cogs', 'wage', 'overheads', 'profit'];
+  if (role === 'trainee') return [];
   if (role === 'manager' || role === 'headchef') return ['revenue', 'transactions', 'acs', 'cogs', 'wage'];
   return ['revenue', 'transactions', 'acs'];
 }
 function roleAccFields(role) {
   if (role === 'owner') return ['revenue', 'cogs', 'wagesSuper', 'overheads'];
+  if (role === 'trainee') return [];
   if (role === 'manager' || role === 'headchef') return ['revenue', 'cogs', 'wagesSuper'];
   return ['revenue'];
 }
@@ -1029,6 +1064,14 @@ export default {
     if (path === '/api/users/delete' && request.method === 'POST') {
       if (!isOwner) return json({ error: 'forbidden' }, 403);
       return apiUserDelete(env, request);
+    }
+    if (path === '/api/training' && request.method === 'GET') {
+      if (!loggedIn) return json({ error: 'auth' }, 401);
+      return json({ content: await getTraining(env) });
+    }
+    if (path === '/api/training' && request.method === 'POST') {
+      if (!isOwner) return json({ error: 'forbidden' }, 403);
+      return apiTrainingSave(env, request);
     }
     const authRoute = /^\/auth\/(accounting|pos|rostering)\/(start|callback)$/.exec(path);
     if (authRoute && request.method === 'GET') {

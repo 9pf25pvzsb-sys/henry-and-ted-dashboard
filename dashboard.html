@@ -395,7 +395,8 @@ var ROLE_METRICS = {
   owner: ['revenue', 'transactions', 'acs', 'cogs', 'wage', 'overheads', 'profit'],
   manager: ['revenue', 'transactions', 'acs', 'cogs', 'wage'],
   headchef: ['revenue', 'transactions', 'acs', 'cogs', 'wage'],
-  supervisor: ['revenue', 'transactions', 'acs']
+  supervisor: ['revenue', 'transactions', 'acs'],
+  trainee: []
 };
 function allowedMetric(k) { var a = ROLE_METRICS[ROLE] || ROLE_METRICS.owner; return a.indexOf(k) >= 0; }
 function visibleMetrics() { return CHOSEN.filter(allowedMetric); }
@@ -800,25 +801,32 @@ function render() {
   var dataKey = isManual() ? 'enter' : 'connections';
   var dataLabel = isManual() ? 'Enter numbers' : 'Data & connections';
 
-  sideLabel('Numbers');
-  side.appendChild(sideItem('Overview', { active: state.view === 'dashboard', onclick: go('dashboard') }));
-  if (isOwner()) {
-    side.appendChild(sideItem(dataLabel, { active: state.view === dataKey, onclick: go(dataKey) }));
-    side.appendChild(sideItem('Targets', { active: state.view === 'targets', onclick: go('targets') }));
-    if (!isManual()) side.appendChild(sideItem('Check your numbers', { active: state.view === 'recon', dot: (anyConfiguredSource() && unconfirmedConnectedMetrics().length), onclick: go('recon') }));
+  if (visibleMetrics().length) {
+    sideLabel('Numbers');
+    side.appendChild(sideItem('Overview', { active: state.view === 'dashboard', onclick: go('dashboard') }));
+    if (isOwner()) {
+      side.appendChild(sideItem(dataLabel, { active: state.view === dataKey, onclick: go(dataKey) }));
+      side.appendChild(sideItem('Targets', { active: state.view === 'targets', onclick: go('targets') }));
+      if (!isManual()) side.appendChild(sideItem('Check your numbers', { active: state.view === 'recon', dot: (anyConfiguredSource() && unconfirmedConnectedMetrics().length), onclick: go('recon') }));
+    }
   }
 
   sideLabel('Team & training');
-  ['training', 'checklists', 'team'].forEach(function (k) {
-    var url = (LINKS[k] || '').trim();
-    if (url) side.appendChild(sideItem(HUBS[k].label, { href: url }));
-    else side.appendChild(sideItem(HUBS[k].label, { active: state.view === k, onclick: go(k) }));
-  });
+  side.appendChild(sideItem('Training', { active: state.view === 'training', onclick: go('training') }));
+  if (ROLE !== 'trainee') {
+    ['checklists', 'team'].forEach(function (k) {
+      var url = (LINKS[k] || '').trim();
+      if (url) side.appendChild(sideItem(HUBS[k].label, { href: url }));
+      else side.appendChild(sideItem(HUBS[k].label, { active: state.view === k, onclick: go(k) }));
+    });
+  }
 
-  sideLabel('Your tools');
-  side.appendChild(sideItem('Loaded (rosters)', { href: TOOL_LINKS.loaded }));
-  if (ROLE === 'owner' || ROLE === 'manager' || ROLE === 'headchef') side.appendChild(sideItem('Dnero (POS)', { href: TOOL_LINKS.dnero }));
-  if (isOwner()) side.appendChild(sideItem('Xero (books)', { href: TOOL_LINKS.xero }));
+  if (ROLE !== 'trainee') {
+    sideLabel('Your tools');
+    side.appendChild(sideItem('Loaded (rosters)', { href: TOOL_LINKS.loaded }));
+    if (ROLE === 'owner' || ROLE === 'manager' || ROLE === 'headchef') side.appendChild(sideItem('Dnero (POS)', { href: TOOL_LINKS.dnero }));
+    if (isOwner()) side.appendChild(sideItem('Xero (books)', { href: TOOL_LINKS.xero }));
+  }
 
   side.appendChild(el('div', 'side-spacer'));
   if (isOwner()) side.appendChild(sideItem('People & access', { active: state.view === 'admin', onclick: go('admin') }));
@@ -850,6 +858,7 @@ function render() {
 
   if (isManual() && (state.view === 'connections' || state.view === 'recon')) state.view = 'dashboard';
   if (!isOwner() && ['connections', 'recon', 'settings', 'targets', 'admin', 'enter'].indexOf(state.view) >= 0) state.view = 'dashboard';
+  if (ROLE === 'trainee' && state.view !== 'training') state.view = 'training';
   var v = state.view;
   if (v === 'dashboard') renderDashboard(main);
   else if (v === 'enter') renderManualEntry(main);
@@ -857,7 +866,8 @@ function render() {
   else if (v === 'recon') renderRecon(main);
   else if (v === 'targets') renderTargets(main);
   else if (v === 'admin') renderAdmin(main);
-  else if (v === 'training' || v === 'checklists' || v === 'team') renderHub(main, v);
+  else if (v === 'training') renderTraining(main);
+  else if (v === 'checklists' || v === 'team') renderHub(main, v);
   else renderSettings(main);
 
   var foot = el('div', 'dash-footer');
@@ -1530,7 +1540,7 @@ function renderAdmin(root) {
   var nUser = document.createElement('input'); nUser.type = 'text'; nUser.placeholder = 'e.g. sam';
   var nPass = document.createElement('input'); nPass.type = 'text'; nPass.placeholder = 'at least 6 characters';
   var nRole = document.createElement('select');
-  [['manager', 'Manager'], ['headchef', 'Head chef'], ['supervisor', 'Supervisor / 2IC']].forEach(function (r) { var o = document.createElement('option'); o.value = r[0]; o.textContent = r[1]; nRole.appendChild(o); });
+  [['manager', 'Manager'], ['headchef', 'Head chef'], ['supervisor', 'Supervisor / 2IC'], ['trainee', 'Trainee (training only)']].forEach(function (r) { var o = document.createElement('option'); o.value = r[0]; o.textContent = r[1]; nRole.appendChild(o); });
   [nName, nUser, nPass, nRole].forEach(function (n) { n.style.cssText = 'font-family:DM Sans,sans-serif;font-size:13px;padding:8px 10px;border:1px solid var(--border-med);border-radius:8px;width:100%;box-sizing:border-box;'; });
   grid.appendChild(field('Name', nName));
   grid.appendChild(field('Username (they log in with this)', nUser));
@@ -1550,6 +1560,89 @@ function renderAdmin(root) {
   root.appendChild(addWrap);
 
   loadUsers();
+}
+
+var TRAINING = null;
+function ytEmbed(url) {
+  var m = String(url || '').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([A-Za-z0-9_-]{6,})/);
+  return m ? 'https://www.youtube.com/embed/' + m[1] : '';
+}
+function saveTraining(content, cb) {
+  TRAINING = content;
+  fetch('/api/training', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: content }) })
+    .then(function () { if (cb) cb(); }).catch(function () { if (cb) cb(); });
+}
+function trainingAdmin(content, redraw) {
+  var box = el('div', 'conn-org'); box.style.maxWidth = '720px'; box.style.marginBottom = '18px';
+  box.innerHTML = '<b>Manage training</b> — add sections and lessons. Videos are YouTube links (unlisted is fine). Staff and trainees see these; they cannot edit.';
+  var secRow = el('div', 'conn-actions');
+  var secIn = document.createElement('input'); secIn.type = 'text'; secIn.placeholder = 'New section name';
+  secIn.style.cssText = 'font-family:DM Sans,sans-serif;font-size:13px;padding:8px 10px;border:1px solid var(--border-med);border-radius:8px;flex:1;min-width:200px';
+  var secBtn = el('button', 'btn-small', 'Add section');
+  secBtn.onclick = function () { var t = secIn.value.trim(); if (!t) return; content.sections.push({ id: 's' + Date.now(), title: t, lessons: [] }); saveTraining(content, redraw); };
+  secRow.appendChild(secIn); secRow.appendChild(secBtn); box.appendChild(secRow);
+  if (content.sections.length) {
+    var g = el('div', 'set-grid'); g.style.marginTop = '10px';
+    function field(label, node) { var c = el('div', 'set-cell'); c.appendChild(el('div', 'set-label', label)); c.appendChild(node); return c; }
+    var lSec = document.createElement('select');
+    content.sections.forEach(function (sec) { var o = document.createElement('option'); o.value = sec.id; o.textContent = sec.title; lSec.appendChild(o); });
+    var lTitle = document.createElement('input'); lTitle.type = 'text'; lTitle.placeholder = 'Lesson title';
+    var lVid = document.createElement('input'); lVid.type = 'url'; lVid.placeholder = 'YouTube link';
+    var lSteps = document.createElement('textarea'); lSteps.placeholder = 'Steps / how we do it (optional)'; lSteps.rows = 3;
+    [lSec, lTitle, lVid, lSteps].forEach(function (n) { n.style.cssText = 'font-family:DM Sans,sans-serif;font-size:13px;padding:8px 10px;border:1px solid var(--border-med);border-radius:8px;width:100%;box-sizing:border-box'; });
+    g.appendChild(field('Section', lSec)); g.appendChild(field('Lesson title', lTitle)); g.appendChild(field('YouTube link', lVid)); g.appendChild(field('Steps (optional)', lSteps));
+    box.appendChild(g);
+    var lBtn = el('button', 'btn-small', 'Add lesson'); var lMsg = el('div', 'conn-line'); lMsg.style.marginTop = '6px';
+    lBtn.onclick = function () {
+      var t = lTitle.value.trim(); if (!t) { lMsg.textContent = 'Enter a lesson title.'; return; }
+      var sec = content.sections.filter(function (x) { return x.id === lSec.value; })[0]; if (!sec) return;
+      if (!sec.lessons) sec.lessons = [];
+      sec.lessons.push({ id: 'l' + Date.now(), title: t, video: lVid.value.trim(), steps: lSteps.value });
+      saveTraining(content, redraw);
+    };
+    box.appendChild(lBtn); box.appendChild(lMsg);
+    var dl = el('div'); dl.style.marginTop = '12px';
+    content.sections.forEach(function (sec) {
+      var b = el('button', 'btn-small', 'Delete: ' + sec.title); b.style.cssText = 'margin:3px 6px 0 0';
+      b.onclick = function () { if (!confirm('Delete section "' + sec.title + '" and its lessons?')) return; content.sections = content.sections.filter(function (x) { return x !== sec; }); saveTraining(content, redraw); };
+      dl.appendChild(b);
+    });
+    box.appendChild(dl);
+  }
+  return box;
+}
+function renderTraining(root) {
+  root.appendChild(el('div', 'screen-title', 'Training'));
+  root.appendChild(el('p', 'screen-sub', 'Videos and how-we-do-it steps, by section. Work through them at your own pace.'));
+  var body = el('div'); root.appendChild(body);
+  function draw() {
+    body.innerHTML = '';
+    var content = TRAINING || { sections: [] };
+    if (isOwner()) body.appendChild(trainingAdmin(content, draw));
+    if (!content.sections.length) { body.appendChild(el('p', 'set-note', 'No training added yet.')); return; }
+    content.sections.forEach(function (sec) {
+      body.appendChild(el('div', 'section-sub', esc(sec.title)));
+      if (!sec.lessons || !sec.lessons.length) { body.appendChild(el('p', 'set-note', 'No lessons in this section yet.')); return; }
+      sec.lessons.forEach(function (les) {
+        var card = el('div', 'conn-card'); card.style.marginBottom = '14px';
+        card.appendChild(el('div', 'conn-name', esc(les.title)));
+        var emb = ytEmbed(les.video);
+        if (emb) {
+          var vwrap = el('div'); vwrap.style.cssText = 'position:relative;padding-bottom:56.25%;height:0;margin:10px 0;border-radius:10px;overflow:hidden';
+          var ifr = document.createElement('iframe'); ifr.src = emb; ifr.allowFullscreen = true; ifr.setAttribute('loading', 'lazy');
+          ifr.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;border:0';
+          vwrap.appendChild(ifr); card.appendChild(vwrap);
+        } else if (les.video) {
+          var a = el('a', 'conn-line'); a.href = les.video; a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Open video'; card.appendChild(a);
+        }
+        if (les.steps) { var st = el('div', 'conn-line'); st.style.whiteSpace = 'pre-wrap'; st.style.marginTop = '8px'; st.textContent = les.steps; card.appendChild(st); }
+        if (isOwner()) { var del = el('button', 'btn-small', 'Remove lesson'); del.style.marginTop = '8px'; del.onclick = function () { sec.lessons = sec.lessons.filter(function (x) { return x !== les; }); saveTraining(content, draw); }; card.appendChild(del); }
+        body.appendChild(card);
+      });
+    });
+  }
+  if (TRAINING) draw();
+  else fetch('/api/training', { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (j) { TRAINING = (j && j.content) || { sections: [] }; draw(); }).catch(function () { TRAINING = { sections: [] }; draw(); });
 }
 
 /* ---------- Check your numbers (reconciliation) ---------- */
