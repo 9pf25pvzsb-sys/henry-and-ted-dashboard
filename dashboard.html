@@ -390,6 +390,16 @@ var METRIC_DEFS = {
                   decision: 'What the venue keeps after the costs you control. The bottom line of the board.' }
 };
 var CHOSEN = KIT_CONFIG.metrics.filter(function (k) { return METRIC_DEFS[k]; });
+var ROLE = 'owner';
+var ROLE_METRICS = {
+  owner: ['revenue', 'transactions', 'acs', 'cogs', 'wage', 'overheads', 'profit'],
+  manager: ['revenue', 'transactions', 'acs', 'cogs', 'wage'],
+  headchef: ['revenue', 'transactions', 'acs', 'cogs', 'wage'],
+  supervisor: ['revenue', 'transactions', 'acs']
+};
+function allowedMetric(k) { var a = ROLE_METRICS[ROLE] || ROLE_METRICS.owner; return a.indexOf(k) >= 0; }
+function visibleMetrics() { return CHOSEN.filter(allowedMetric); }
+function isOwner() { return ROLE === 'owner'; }
 
 var SOURCES = [
   { key: 'accounting', name: P.accounting, role: 'Money figures (' + KIT_CONFIG.taxLabel + ')' },
@@ -792,9 +802,11 @@ function render() {
 
   sideLabel('Numbers');
   side.appendChild(sideItem('Overview', { active: state.view === 'dashboard', onclick: go('dashboard') }));
-  side.appendChild(sideItem(dataLabel, { active: state.view === dataKey, onclick: go(dataKey) }));
-  side.appendChild(sideItem('Targets', { active: state.view === 'targets', onclick: go('targets') }));
-  if (!isManual()) side.appendChild(sideItem('Check your numbers', { active: state.view === 'recon', dot: (anyConfiguredSource() && unconfirmedConnectedMetrics().length), onclick: go('recon') }));
+  if (isOwner()) {
+    side.appendChild(sideItem(dataLabel, { active: state.view === dataKey, onclick: go(dataKey) }));
+    side.appendChild(sideItem('Targets', { active: state.view === 'targets', onclick: go('targets') }));
+    if (!isManual()) side.appendChild(sideItem('Check your numbers', { active: state.view === 'recon', dot: (anyConfiguredSource() && unconfirmedConnectedMetrics().length), onclick: go('recon') }));
+  }
 
   sideLabel('Team & training');
   ['training', 'checklists', 'team'].forEach(function (k) {
@@ -805,11 +817,12 @@ function render() {
 
   sideLabel('Your tools');
   side.appendChild(sideItem('Loaded (rosters)', { href: TOOL_LINKS.loaded }));
-  side.appendChild(sideItem('Xero (books)', { href: TOOL_LINKS.xero }));
-  side.appendChild(sideItem('Dnero (POS)', { href: TOOL_LINKS.dnero }));
+  if (ROLE === 'owner' || ROLE === 'manager' || ROLE === 'headchef') side.appendChild(sideItem('Dnero (POS)', { href: TOOL_LINKS.dnero }));
+  if (isOwner()) side.appendChild(sideItem('Xero (books)', { href: TOOL_LINKS.xero }));
 
   side.appendChild(el('div', 'side-spacer'));
-  side.appendChild(sideItem('Settings', { active: state.view === 'settings', onclick: go('settings') }));
+  if (isOwner()) side.appendChild(sideItem('People & access', { active: state.view === 'admin', onclick: go('admin') }));
+  if (isOwner()) side.appendChild(sideItem('Settings', { active: state.view === 'settings', onclick: go('settings') }));
 
   var top = el('div', 'topbar');
   top.appendChild(el('div', 'venue-name', esc(SETTINGS.venueName)));
@@ -836,12 +849,14 @@ function render() {
   }
 
   if (isManual() && (state.view === 'connections' || state.view === 'recon')) state.view = 'dashboard';
+  if (!isOwner() && ['connections', 'recon', 'settings', 'targets', 'admin', 'enter'].indexOf(state.view) >= 0) state.view = 'dashboard';
   var v = state.view;
   if (v === 'dashboard') renderDashboard(main);
   else if (v === 'enter') renderManualEntry(main);
   else if (v === 'connections') renderConnections(main);
   else if (v === 'recon') renderRecon(main);
   else if (v === 'targets') renderTargets(main);
+  else if (v === 'admin') renderAdmin(main);
   else if (v === 'training' || v === 'checklists' || v === 'team') renderHub(main, v);
   else renderSettings(main);
 
@@ -988,7 +1003,7 @@ function renderDashboard(root) {
   /* Cards */
   var grid = el('div', 'cards');
   var cur = periodValues('cur'), prev = periodValues('prev'), yoy = periodValues('yoy');
-  CHOSEN.forEach(function (k) { grid.appendChild(metricCard(k, cur, prev, yoy, r)); });
+  visibleMetrics().forEach(function (k) { grid.appendChild(metricCard(k, cur, prev, yoy, r)); });
   root.appendChild(grid);
 }
 
@@ -1481,6 +1496,62 @@ function posCountPanel(s) {
   return wrap;
 }
 
+function renderAdmin(root) {
+  root.appendChild(el('div', 'screen-title', 'People & access'));
+  root.appendChild(el('p', 'screen-sub', 'Add logins for your team and set what each role sees. You (Owner) always see everything. Managers and head chef see the operational numbers but not Overheads or Profit. Supervisors see the top-line only (revenue, transactions, average spend).'));
+
+  var listWrap = el('div'); root.appendChild(listWrap);
+
+  function roleLabel(r) { return r === 'manager' ? 'Manager' : r === 'headchef' ? 'Head chef' : r === 'supervisor' ? 'Supervisor / 2IC' : r; }
+  function loadUsers() {
+    listWrap.innerHTML = '';
+    fetch('/api/users', { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (j) {
+      var users = (j && j.users) || [];
+      if (!users.length) { listWrap.appendChild(el('p', 'set-note', 'No staff logins yet. Add one below.')); return; }
+      listWrap.appendChild(el('div', 'section-sub', 'Current logins'));
+      users.forEach(function (u) {
+        var row = el('div', 'manual-row');
+        row.style.display = 'flex'; row.style.alignItems = 'center'; row.style.gap = '10px';
+        var t = el('span', null, '<b>' + esc(u.name || u.id) + '</b> \u00b7 ' + esc(u.id) + ' \u00b7 ' + esc(roleLabel(u.role)));
+        t.style.flex = '1';
+        var del = el('button', 'btn-small', 'Remove');
+        del.onclick = function () { if (!confirm('Remove ' + (u.name || u.id) + '?')) return; fetch('/api/users/delete', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: u.id }) }).then(function () { loadUsers(); }); };
+        row.appendChild(t); row.appendChild(del);
+        listWrap.appendChild(row);
+      });
+    }).catch(function () { listWrap.appendChild(el('p', 'set-note', 'Could not load logins.')); });
+  }
+
+  var addWrap = el('div', 'conn-org'); addWrap.style.maxWidth = '680px'; addWrap.style.marginTop = '1.1rem';
+  addWrap.innerHTML = '<b>Add or update a login</b> \u2014 give the person their username and password so they can sign in.';
+  var grid = el('div', 'set-grid');
+  function field(label, node) { var c = el('div', 'set-cell'); c.appendChild(el('div', 'set-label', label)); c.appendChild(node); return c; }
+  var nName = document.createElement('input'); nName.type = 'text'; nName.placeholder = 'e.g. Sam';
+  var nUser = document.createElement('input'); nUser.type = 'text'; nUser.placeholder = 'e.g. sam';
+  var nPass = document.createElement('input'); nPass.type = 'text'; nPass.placeholder = 'at least 6 characters';
+  var nRole = document.createElement('select');
+  [['manager', 'Manager'], ['headchef', 'Head chef'], ['supervisor', 'Supervisor / 2IC']].forEach(function (r) { var o = document.createElement('option'); o.value = r[0]; o.textContent = r[1]; nRole.appendChild(o); });
+  [nName, nUser, nPass, nRole].forEach(function (n) { n.style.cssText = 'font-family:DM Sans,sans-serif;font-size:13px;padding:8px 10px;border:1px solid var(--border-med);border-radius:8px;width:100%;box-sizing:border-box;'; });
+  grid.appendChild(field('Name', nName));
+  grid.appendChild(field('Username (they log in with this)', nUser));
+  grid.appendChild(field('Role', nRole));
+  grid.appendChild(field('Password', nPass));
+  addWrap.appendChild(grid);
+  var msg = el('div', 'conn-line'); msg.style.marginTop = '0.5rem';
+  var btn = el('button', 'btn-small', 'Save login');
+  btn.onclick = function () {
+    msg.textContent = 'Saving\u2026';
+    fetch('/api/users', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: nName.value, id: nUser.value, role: nRole.value, password: nPass.value }) })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (o) { if (o.ok && o.j.ok) { msg.textContent = 'Saved.'; nName.value = ''; nUser.value = ''; nPass.value = ''; loadUsers(); } else { msg.textContent = (o.j && o.j.plain) || 'Could not save.'; } })
+      .catch(function () { msg.textContent = 'Could not save. Try again.'; });
+  };
+  addWrap.appendChild(btn); addWrap.appendChild(msg);
+  root.appendChild(addWrap);
+
+  loadUsers();
+}
+
 /* ---------- Check your numbers (reconciliation) ---------- */
 function renderRecon(root) {
   root.appendChild(el('div', 'screen-title', 'Check your numbers'));
@@ -1787,7 +1858,11 @@ function renderSettings(root) {
 ============================================================ */
 state.period = SETTINGS.defaultPeriod || 'thisWeek';
 render();
-fetchData();
+fetch('/api/me', { credentials: 'same-origin' })
+  .then(function (r) { return r.ok ? r.json() : null; })
+  .then(function (j) { if (j && j.role) { ROLE = j.role; if (Array.isArray(j.metrics)) ROLE_METRICS[ROLE] = j.metrics; } })
+  .catch(function () {})
+  .then(function () { fetchData(); });
 </script>
 </body>
 </html>
