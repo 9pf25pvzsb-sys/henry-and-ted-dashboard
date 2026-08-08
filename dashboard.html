@@ -1563,6 +1563,7 @@ function renderAdmin(root) {
 }
 
 var TRAINING = null;
+function ytId(url) { var m = String(url || '').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([A-Za-z0-9_-]{6,})/); return m ? m[1] : ''; }
 function ytEmbed(url) {
   var m = String(url || '').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([A-Za-z0-9_-]{6,})/);
   return m ? 'https://www.youtube-nocookie.com/embed/' + m[1] + '?rel=0&modestbranding=1' : '';
@@ -1626,13 +1627,16 @@ function renderTraining(root) {
       sec.lessons.forEach(function (les) {
         var card = el('div', 'conn-card'); card.style.marginBottom = '14px';
         card.appendChild(el('div', 'conn-name', esc(les.title)));
-        var emb = ytEmbed(les.video);
-        if (emb) {
-          var vwrap = el('div'); vwrap.style.cssText = 'position:relative;padding-bottom:56.25%;height:0;margin:10px 0;border-radius:10px;overflow:hidden';
-          var ifr = document.createElement('iframe'); ifr.src = emb; ifr.allowFullscreen = true; ifr.setAttribute('loading', 'lazy');
-          ifr.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;border:0';
-          vwrap.appendChild(ifr); card.appendChild(vwrap);
-          var yl = el('a', 'conn-line'); yl.href = les.video; yl.target = '_blank'; yl.rel = 'noopener'; yl.textContent = 'Open on YouTube \u2197'; yl.style.display = 'inline-block'; yl.style.marginTop = '6px'; card.appendChild(yl);
+        var yid = ytId(les.video);
+        if (yid) {
+          var thumb = el('a'); thumb.href = les.video; thumb.target = '_blank'; thumb.rel = 'noopener';
+          thumb.style.cssText = 'display:block;position:relative;max-width:560px;margin:10px 0;border-radius:10px;overflow:hidden;background:#000';
+          var img = document.createElement('img'); img.src = 'https://i.ytimg.com/vi/' + yid + '/hqdefault.jpg'; img.alt = les.title;
+          img.style.cssText = 'width:100%;display:block';
+          var play = el('div'); play.textContent = '\u25B6';
+          play.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:62px;height:62px;border-radius:50%;background:rgba(0,0,0,0.62);color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center;padding-left:4px;box-sizing:border-box';
+          thumb.appendChild(img); thumb.appendChild(play); card.appendChild(thumb);
+          var yl = el('a', 'conn-line'); yl.href = les.video; yl.target = '_blank'; yl.rel = 'noopener'; yl.textContent = 'Watch on YouTube \u2197'; yl.style.cssText = 'display:inline-block;margin-top:6px'; card.appendChild(yl);
         } else if (les.video) {
           var a = el('a', 'conn-line'); a.href = les.video; a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Open video'; card.appendChild(a);
         }
