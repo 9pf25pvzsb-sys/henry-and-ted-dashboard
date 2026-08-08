@@ -1565,7 +1565,7 @@ function renderAdmin(root) {
 var TRAINING = null;
 function ytEmbed(url) {
   var m = String(url || '').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([A-Za-z0-9_-]{6,})/);
-  return m ? 'https://www.youtube.com/embed/' + m[1] : '';
+  return m ? 'https://www.youtube-nocookie.com/embed/' + m[1] + '?rel=0&modestbranding=1' : '';
 }
 function saveTraining(content, cb) {
   TRAINING = content;
@@ -1632,6 +1632,7 @@ function renderTraining(root) {
           var ifr = document.createElement('iframe'); ifr.src = emb; ifr.allowFullscreen = true; ifr.setAttribute('loading', 'lazy');
           ifr.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;border:0';
           vwrap.appendChild(ifr); card.appendChild(vwrap);
+          var yl = el('a', 'conn-line'); yl.href = les.video; yl.target = '_blank'; yl.rel = 'noopener'; yl.textContent = 'Open on YouTube \u2197'; yl.style.display = 'inline-block'; yl.style.marginTop = '6px'; card.appendChild(yl);
         } else if (les.video) {
           var a = el('a', 'conn-line'); a.href = les.video; a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Open video'; card.appendChild(a);
         }
